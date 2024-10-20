@@ -1,0 +1,39 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Region {
+  id             Int               @id @default(autoincrement())
+  code           String            @unique
+  name           String
+  cycleDuration  Int // in days
+  questions      QuestionRegions[]
+  @@map("regions")
+}
+
+model Question {
+  id        Int               @id @default(autoincrement())
+  text      String
+  createdAt DateTime          @default(now())
+  relations QuestionRegions[]
+
+  @@map("questions")
+}
+
+model QuestionRegions {
+  id         Int      @id @default(autoincrement())
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId Int
+  region     Region   @relation(fields: [regionId], references: [id])
+  regionId   Int
+  createdAt  DateTime @default(now())
+  activeFrom DateTime // When the question becomes valid for this region
+  activeTill DateTime // When the question is no longer valid for this region and we should pick the next one and update the order
+
+  @@map("question_regions")
+}
